@@ -1356,11 +1356,18 @@ function createBot() {
     });
 
     bot.on("error", (err) => {
-      const msg = err.message || "";
-      addLog(`[Bot] Error: ${msg}`);
-      botState.errors.push({ type: "error", message: msg, time: Date.now() });
-      // Don't reconnect on error - let 'end' event handle it
-    });
+  const msg = err.message || "";
+  addLog(`[Bot] Error: ${msg}`);
+  botState.errors.push({ type: "error", message: msg, time: Date.now() });
+
+  botState.connected = false;
+
+  try {
+    bot.end();
+  } catch {}
+
+  scheduleReconnect();
+});
   } catch (err) {
     addLog(`[Bot] Failed to create bot: ${err.message}`);
     scheduleReconnect();
@@ -1371,10 +1378,12 @@ function scheduleReconnect() {
   clearBotTimeouts();
 
   // FIX: don't stack reconnect if already waiting
-  if (isReconnecting) {
-    addLog("[Bot] Reconnect already scheduled, skipping duplicate.");
-    return;
-  }
+ if (isReconnecting && reconnectTimeoutId) {
+  addLog("[Bot] Reconnect already scheduled, skipping duplicate.");
+  return;
+}
+
+isReconnecting = false;
 
   isReconnecting = true;
   botState.reconnectAttempts++;
