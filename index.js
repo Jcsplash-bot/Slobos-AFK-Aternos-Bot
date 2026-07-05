@@ -1166,12 +1166,12 @@ function addInterval(callback, delay) {
 function getReconnectDelay() {
   if (botState.wasThrottled) {
     botState.wasThrottled = false;
-    const throttleDelay = 60000 + Math.floor(Math.random() * 60000);
-    addLog(
-      `[Bot] Throttle detected - using extended delay: ${throttleDelay / 1000}s`,
-    );
-    return throttleDelay;
+    return 60000;
   }
+
+  // Always reconnect between 5 and 15 seconds
+  return 5000 + Math.floor(Math.random() * 10000);
+}
 
   // FIX: read auto-reconnect-delay from settings as base delay
   const baseDelay = config.utils["auto-reconnect-delay"] || 3000;
@@ -1239,7 +1239,7 @@ function createBot() {
         bot = null;
         scheduleReconnect();
       }
-    }, 150000); // 150s - Aternos servers can take 90-120s to finish spawning a player
+    }, 30000); // 150s - Aternos servers can take 90-120s to finish spawning a player
 
     // FIX: guard against spawn firing twice (can happen on some servers)
     let spawnHandled = false;
